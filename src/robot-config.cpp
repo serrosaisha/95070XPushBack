@@ -9,15 +9,19 @@ brain  Brain;
 pneumatics mogo = pneumatics(Brain.ThreeWirePort.C);
 rotation  rotationSensor = rotation (PORT21, false);
 controller controller1 = controller(primary);
-motor fr = motor(PORT15, ratio18_1, false);
-motor fl = motor(PORT7, ratio18_1, true);
-motor ml = motor(PORT2, ratio18_1, true);
-motor mr = motor(PORT12, ratio18_1, false);
-motor bl = motor(PORT1, ratio18_1, true);
-motor br = motor(PORT11, ratio18_1, false);
-motor intake = motor(PORT16, ratio18_1, false);
+
+motor fl = motor(PORT1, ratio6_1, true);
+motor tl = motor(PORT2, ratio6_1, false);
+motor bl = motor(PORT3, ratio6_1, true);
+motor fr = motor(PORT4, ratio6_1, false);
+motor mr = motor(PORT5, ratio6_1, false);
+motor br = motor(PORT6, ratio6_1, true);
+motor intake = motor(PORT7, ratio6_1, true);
+motor intake2 = motor(PORT8, ratio18_1, false);
+motor intake3 = motor(PORT9, ratio18_1, false);
 inertial inertialSensor = inertial(PORT18);
-optical opticalSensor = optical(PORT6);
+optical opticalSensor = optical(PORT16);
+pneumatics matchload = pneumatics(Brain.ThreeWirePort.H);
 
 // VEXcode generated functions
 

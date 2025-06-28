@@ -37,13 +37,23 @@ competition Competition;
 /*  not every time that the robot is disabled.                               */
 /*---------------------------------------------------------------------------*/
 
-void pre_auton(void) {
-  // Initializing Robot Configuration. DO NOT REMOVE!
-  vexcodeInit();
-  
-  // All activities that occur before the competition starts
-  // Example: clearing encoders, setting servo positions, ...
-}
+bool selecting = 1;
+ void pre_auton(void) {
+ //  inertialSensor.calibrate();
+ //  while(inertialSensor.isCalibrating()) {
+ //   wait(20, msec);
+ //  }
+ // Initializing Robot Configuration. DO NOT REMOVE!
+ vexcodeInit();
+ inertialSensor.calibrate();
+ wait(5, msec);
+ waitUntil(!inertialSensor.isCalibrating());
+ while (selecting) {
+    autonselector();
+   // if (controller1.ButtonB.pressing()) selecting = 0;
+    wait(5, msec);
+  }
+ }
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -55,12 +65,14 @@ void pre_auton(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-void autonomous(void) {
-  auton1();
-  // ..........................................................................
-  // Insert autonomous user code here.
-  // ..........................................................................
-}
+
+
+//auton selector
+
+
+// auton
+
+
 
 /*---------------------------------------------------------------------------*/
 /*                                                                           */
@@ -74,8 +86,13 @@ void autonomous(void) {
 
 void usercontrol(void) {
   // User control code here, inside the loop
-  while (1) {
+  while (true) {
     arcade();
+    intaking();
+    controller1.ButtonL2.pressed(loadingcontrol);
+    controller1.ButtonL2.released(loading);
+
+    //hi huddy was here, so now you have good luck!!
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.

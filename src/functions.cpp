@@ -2,26 +2,37 @@
 #include "functions.hpp"
 #include <string>
 #include <cmath>
+#include "autons.hpp"
 
 using namespace vex;
 using namespace std;
 using namespace chrono;
 
-double tkp = 0.5;
-double tki = 0.7;
-double tkd = 0.5;
+bool loadingtrue = false;
+bool prevloading = false;
 
-double kp = 0.175;
-double ki = 0;
-double kd = 0;
+
+steady_clock::time_point lastloading;
+
+double tkp = 0.7; //0.5
+double tki = 0.05; //.7
+double tkd = 0.15; //0.5
+
+double kp = 0.09; //0.175
+double ki = 0; //0
+double kd = 0; //0
 
 #define INCHES_TO_DEGREES 90/5
 
 void arcade() {
-    float throttle = (controller(primary).Axis3.value());
-    float turn = (controller(primary).Axis1.value());
+    float throttle = 0.47*(controller(primary).Axis3.value());
+    float turn = 0.2*(controller(primary).Axis1.value());
+    controller1.Screen.setCursor(1,1);
+    controller1.Screen.print(throttle);
+    controller1.Screen.setCursor(2,1);
+    controller1.Screen.print(turn);
     fl.spin(fwd, (throttle+turn), pct);
-    ml.spin(fwd, (throttle+turn), pct);
+    tl.spin(fwd, (throttle+turn), pct);
     bl.spin(fwd, (throttle+turn), pct);
     fr.spin(fwd, (throttle-turn), pct);
     mr.spin(fwd, (throttle-turn), pct);
@@ -36,7 +47,7 @@ void pidfb(double targetDistance, int timeout) {
 
   int previous = time(NULL);
   fl.setPosition(0, degrees);
-  ml.setPosition(0, degrees);
+  tl.setPosition(0, degrees);
   bl.setPosition(0, degrees);
   fr.setPosition(0, degrees);
   mr.setPosition(0, degrees);
@@ -51,7 +62,7 @@ void pidfb(double targetDistance, int timeout) {
     prevDistanceError = measureDistance;
     if (fabs(error)<30) {
       fl.stop(brake);
-      ml.stop(brake);
+      tl.stop(brake);
       bl.stop(brake);
  
       fr.stop(brake);
@@ -59,10 +70,12 @@ void pidfb(double targetDistance, int timeout) {
       br.stop(brake);
       return;
     }
-   
-    double speed = error * kp + integral * ki + (error - lastError) * kd;
+
+    if (error < 20) integral += error;
+
+    double speed = error * kp + integral * ki + (error - lastError) * kd; // the error - lastError is derivative
     fl.spin(fwd, speed, percent);
-    ml.spin(fwd, speed, percent);
+    tl.spin(fwd, speed, percent);
     bl.spin(fwd, speed, percent);
  
     fr.spin(fwd, speed, percent);
@@ -74,11 +87,11 @@ void pidfb(double targetDistance, int timeout) {
   }
  }
 
-// PID to inches
-void pidinches (double DistanceInInches) {
- double degrees = DistanceInInches * INCHES_TO_DEGREES;
- pidfb(degrees, 1);
-}
+ #define INCHES_TO_DEGREES (4.0/3.0)*360.0/(M_PI * 3.25)
+ void pidinches (double DistanceInInches) {
+  double degrees = DistanceInInches * INCHES_TO_DEGREES;
+  pidfb(degrees, 1);
+ }
 
 void pidT(double targetAngle) {
  double error = targetAngle;
@@ -86,12 +99,7 @@ void pidT(double targetAngle) {
  double lastError =  targetAngle;
 //  double prevDistanceError = fl.position(degrees);
 //  inertialSensor.setRotation(0, degrees);
- fl.setPosition(0, degrees);
- ml.setPosition(0, degrees);
- bl.setPosition(0, degrees);
- fr.setPosition(0, degrees);
- mr.setPosition(0, degrees);
- br.setPosition(0, degrees);
+
  while (true) {
   //  double measureDistance = (fl.position(degrees) + fr.position(degrees))/2;
    error = targetAngle - inertialSensor.rotation(deg);
@@ -100,7 +108,7 @@ void pidT(double targetAngle) {
   while (error < -180) error += 360;
    if (fabs(error)<2) {
      fl.stop(brake);
-     ml.stop(brake);
+     tl.stop(brake);
      bl.stop(brake);
 
      fr.stop(brake);
@@ -108,23 +116,146 @@ void pidT(double targetAngle) {
      br.stop(brake);
      return;
    }
+
+   if(error < 2) integral += error;
   
    double speed = error * tkp + integral * tki + (error - lastError) * tkd;
    fl.spin(fwd, speed, percent);
-   ml.spin(fwd, speed, percent);
+   tl.spin(fwd, speed, percent);
    bl.spin(fwd, speed, percent);
 
-   fr.spin(vex::reverse, speed, percent);
+   fr.spin(vex::reverse, speed, percent); 
    mr.spin(vex::reverse, speed, percent);
    br.spin(vex::reverse, speed, percent);
 
-  //  Brain.Screen.print(inertialSensor.angle(degrees));
+   controller1.Screen.setCursor(1,1);
+   controller1.Screen.print(error);
 
    lastError = error;
    wait(20, msec);
  }
 }
 
+void old_arcade() {
+    //Slower
+    // int speedleft = controller1.Axis1.value()/2;
+    // int speedright = controller1.Axis3.value()/2;
+    // search up the ebot pilons turning curves(or something like that) desmos
+    
+    std::cout << "confirm" << std::endl;
+    
+    double speedleft = controller1.Axis1.value() * 0.7 + controller1.Axis3.value();
+    double speedright = controller1.Axis1.value() * 0.62 - controller1.Axis3.value();
+    
+    fl.spin(vex::forward, speedleft, percent);
+    tl.spin(vex::forward, speedleft, percent);
+    bl.spin(vex::forward, speedleft, percent);
+    
+    // RIGHT MOTORS ARE vex::reverseD SO vex::forward = vex::reverse!!!!!!!!!
+    fr.spin(vex::reverse, speedright, percent);
+    mr.spin(vex::reverse, speedright, percent);
+    br.spin(vex::reverse, speedright, percent);
+    }
+
+void intaking() {
+ if (controller1.ButtonR1.pressing()) { //storage area
+  intake.spin(vex::reverse, 80, pct);
+  intake2.spin(vex::reverse, 80, pct);
+  intake3.spin(vex::reverse, 80, pct);
+ //  intake2.spin(vex::reverse, 90, percent);
+} else if (controller1.ButtonR2.pressing()) { //scoring high goal
+  intake.spin(vex::reverse, 80, pct);
+  intake2.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 80, pct);
+} else if (controller1.ButtonL1.pressing()) { //low middle goal scoring
+  intake.spin(vex::forward, 80, pct);
+  intake2.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 80, pct);
+}
+else {
+  intake.stop(coast);
+  intake2.stop(coast);
+  intake3.stop(coast);
+ //  intake2.stop(coast);
+}
+} 
+
+void intakeForStorage() { // storage
+  intake.spin(vex::reverse, 80, pct);
+  intake2.spin(vex::reverse, 80, pct);
+  intake3.spin(vex::reverse, 80, pct);
+ }
+
+ void outakeForLongGoal() { //long goal
+  intake.spin(vex::reverse, 80, pct);
+  intake2.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 80, pct);
+ }
+ 
+ void outtakeForShortMiddle() { //lowest middle goal
+  intake.spin(vex::forward, 80, pct);
+  intake2.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 80, pct);
+ }
+
+ void loadingcontrol() {
+  if (loadingtrue) {
+   matchload.set(false);
+  } else {
+   matchload.set(true);
+  }
+ }
+
+ void loading() {
+  auto now = steady_clock::now();
+  auto durLastClamp = duration_cast<milliseconds>(now-lastloading).count();
+  if (durLastClamp > 200) {
+    loadingcontrol();
+    loadingtrue = !loadingtrue;
+    lastloading = now;
+  }
+ }
+ 
+int auton = 1;
+
+ void autonselector() {
+  int numofautons = 1;
+  if (controller1.ButtonA.pressing()) {
+    auton++;
+    wait(200,msec);
+  } else if (controller1.ButtonY.pressing()) {
+    auton--;
+    wait(200,msec);
+  }
+  if (auton > numofautons) {
+    auton = 1;
+  } else if (auton < 1) {
+    auton = numofautons;
+  }
+ 
+  if (auton == 1) {
+    controller1.Screen.clearScreen();
+    controller1.Screen.setCursor(2,9);
+    controller1.Screen.print("Left");
+  } 
+ }
+
+ void autonomous() {
+  if (auton == 1) {
+    auton1();
+  }
+ }
+
+ void stopIntaking() {
+  intake.stop(coast);
+  intake2.stop(coast);
+  intake3.stop(coast);
+  //intake2.stop(coast);
+ }
+ 
+ // auton
+ 
+ 
 
    
 
