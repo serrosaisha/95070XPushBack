@@ -13,6 +13,7 @@ extern motor br;
 extern motor intake;
 extern motor intake2;
 extern motor intake3;
+extern motor intake4;
 extern inertial inertialSensor;
 extern rotation rotationSensor;
 extern optical opticalSensor;

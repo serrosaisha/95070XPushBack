@@ -89,8 +89,8 @@ void usercontrol(void) {
   while (true) {
     arcade();
     intaking();
-    controller1.ButtonL2.pressed(loadingcontrol);
-    controller1.ButtonL2.released(loading);
+    controller1.ButtonX.pressed(loadingcontrol);
+    controller1.ButtonX.released(loading);
 
     //hi huddy was here, so now you have good luck!!
     // This is the main execution loop for the user control program.

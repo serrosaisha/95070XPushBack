@@ -19,6 +19,7 @@ motor br = motor(PORT6, ratio6_1, true);
 motor intake = motor(PORT7, ratio6_1, true);
 motor intake2 = motor(PORT8, ratio18_1, false);
 motor intake3 = motor(PORT9, ratio18_1, false);
+motor intake4 = motor(PORT10, ratio18_1, false);
 inertial inertialSensor = inertial(PORT18);
 optical opticalSensor = optical(PORT16);
 pneumatics matchload = pneumatics(Brain.ThreeWirePort.H);

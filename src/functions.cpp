@@ -14,9 +14,9 @@ bool prevloading = false;
 
 steady_clock::time_point lastloading;
 
-double tkp = 0.7; //0.5
-double tki = 0.05; //.7
-double tkd = 0.15; //0.5
+double tkp = 0.25; //0.5
+double tki = 0.0; //.7
+double tkd = 0.0; //0.5
 
 double kp = 0.09; //0.175
 double ki = 0; //0
@@ -167,15 +167,22 @@ void intaking() {
   intake.spin(vex::reverse, 80, pct);
   intake2.spin(vex::forward, 80, pct);
   intake3.spin(vex::forward, 80, pct);
+  intake4.spin(vex::forward, 80, pct);
 } else if (controller1.ButtonL1.pressing()) { //low middle goal scoring
   intake.spin(vex::forward, 80, pct);
   intake2.spin(vex::forward, 80, pct);
   intake3.spin(vex::forward, 80, pct);
+} else if (controller1.ButtonL2.pressing()) { //low middle goal scoring
+  intake.spin(vex::reverse, 70, pct);
+  intake2.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 80, pct);
+  intake4.spin(vex::reverse, 70, pct);
 }
 else {
   intake.stop(coast);
   intake2.stop(coast);
   intake3.stop(coast);
+  intake4.stop(coast);
  //  intake2.stop(coast);
 }
 } 
