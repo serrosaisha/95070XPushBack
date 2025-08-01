@@ -10,9 +10,7 @@ using namespace std;
 using namespace chrono;
 
 void auton1() { 
-    pidinches(10);
-    pidT(270);
-    wait(2, sec);
-    pidT(360);
+    pidinches(30);
+    //pidT(270);
 }
 

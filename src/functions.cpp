@@ -14,13 +14,13 @@ bool prevloading = false;
 
 steady_clock::time_point lastloading;
 
-double tkp = 0.25; //0.5
+double tkp = 0.34; //0.5
 double tki = 0.0; //.7
 double tkd = 0.0; //0.5
 
-double kp = 0.09; //0.175
-double ki = 0; //0
-double kd = 0; //0
+double kp = 0.66; //0.0175
+double ki = 0.0001;
+double kd = 0.001;
 
 #define INCHES_TO_DEGREES 90/5
 
@@ -60,11 +60,10 @@ void pidfb(double targetDistance, int timeout) {
     }
     error = targetDistance - measureDistance;
     prevDistanceError = measureDistance;
-    if (fabs(error)<30) {
+    if (fabs(error)<10) {
       fl.stop(brake);
       tl.stop(brake);
       bl.stop(brake);
- 
       fr.stop(brake);
       mr.stop(brake);
       br.stop(brake);

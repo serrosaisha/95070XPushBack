@@ -12,7 +12,7 @@ controller controller1 = controller(primary);
 
 motor fl = motor(PORT1, ratio6_1, true);
 motor tl = motor(PORT2, ratio6_1, false);
-motor bl = motor(PORT3, ratio6_1, true);
+motor bl = motor(PORT13, ratio6_1, true);
 motor fr = motor(PORT4, ratio6_1, false);
 motor mr = motor(PORT5, ratio6_1, false);
 motor br = motor(PORT6, ratio6_1, true);
@@ -22,7 +22,7 @@ motor intake3 = motor(PORT9, ratio18_1, false);
 motor intake4 = motor(PORT10, ratio18_1, false);
 inertial inertialSensor = inertial(PORT18);
 optical opticalSensor = optical(PORT16);
-pneumatics matchload = pneumatics(Brain.ThreeWirePort.H);
+pneumatics matchload = pneumatics(Brain.ThreeWirePort.A);
 
 // VEXcode generated functions
 
