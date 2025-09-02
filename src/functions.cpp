@@ -14,19 +14,15 @@ bool prevloading = false;
 
 steady_clock::time_point lastloading;
 
-double tkp = 0.34; //0.5
+double tkp = 0.36; //0.5
 double tki = 0.0; //.7
-double tkd = 0.0; //0.5
+double tkd = 0.0; //0.5x
 
-double kp = 0.66; //0.0175
-double ki = 0.0001;
-double kd = 0.001;
-
-#define INCHES_TO_DEGREES 90/5
+// #define INCHES_TO_DEGREES 90/5
 
 void arcade() {
-    float throttle = 0.47*(controller(primary).Axis3.value());
-    float turn = 0.2*(controller(primary).Axis1.value());
+    float throttle = 0.9*(controller(primary).Axis3.value());
+    float turn = 0.5*(controller(primary).Axis1.value());
     controller1.Screen.setCursor(1,1);
     controller1.Screen.print(throttle);
     controller1.Screen.setCursor(2,1);
@@ -40,37 +36,45 @@ void arcade() {
    }
 
 void pidfb(double targetDistance, int timeout) {
-  double error = targetDistance;
-  double integral = 0;
-  double lastError =  targetDistance;
-  double prevDistanceError = fl.position(degrees);
+  double kp = 0.09; //0.09
+  double ki = 0;//0
+  double kd = 0.15;//0.15
 
-  int previous = time(NULL);
   fl.setPosition(0, degrees);
   tl.setPosition(0, degrees);
   bl.setPosition(0, degrees);
   fr.setPosition(0, degrees);
   mr.setPosition(0, degrees);
   br.setPosition(0, degrees);
+
+  double error = targetDistance;
+  double integral = 0;
+  double lastError =  targetDistance;
+  double prevDistanceError = fl.position(degrees);
+  int exitCount = 0;
+
+  int previous = time(NULL);
+
   while (true) {
-    double measureDistance = (fl.position(degrees) + fr.position(degrees))/2;
-    int current = time(NULL);
+    //double measureDistance = (fl.position(degrees) + fr.position(degrees))/2;
+    double measureDistance = (fl.position(degrees) + tl.position(degrees) + bl.position(degrees) + fr.position(degrees) + mr.position(degrees) + br.position(degrees)) / 6.0;
+    
+    //int current = Brain.timer(msec);
+    //if (Brain.timer(msec) - current > timeout)
+    int current = time(NULL); 
     if (current - previous > timeout) {
-      return;
+      break;
     }
     error = targetDistance - measureDistance;
     prevDistanceError = measureDistance;
-    if (fabs(error)<10) {
-      fl.stop(brake);
-      tl.stop(brake);
-      bl.stop(brake);
-      fr.stop(brake);
-      mr.stop(brake);
-      br.stop(brake);
-      return;
+    if (fabs(error)<5) exitCount++; // used to be 10
+    else exitCount = 0;
+
+    if(exitCount > 10) { // braking used to be commented out
+      break;
     }
 
-    if (error < 20) integral += error;
+    if (fabs(error) < 100) integral += error;
 
     double speed = error * kp + integral * ki + (error - lastError) * kd; // the error - lastError is derivative
     fl.spin(fwd, speed, percent);
@@ -84,12 +88,18 @@ void pidfb(double targetDistance, int timeout) {
     lastError = error;
     wait(15, msec);
   }
+  fl.stop(brake);
+  tl.stop(brake);
+  bl.stop(brake);
+  fr.stop(brake);
+  mr.stop(brake);
+  br.stop(brake);
  }
 
  #define INCHES_TO_DEGREES (4.0/3.0)*360.0/(M_PI * 3.25)
  void pidinches (double DistanceInInches) {
   double degrees = DistanceInInches * INCHES_TO_DEGREES;
-  pidfb(degrees, 1);
+  pidfb(degrees, 5);
  }
 
 void pidT(double targetAngle) {
@@ -165,7 +175,7 @@ void intaking() {
 } else if (controller1.ButtonR2.pressing()) { //scoring high goal
   intake.spin(vex::reverse, 80, pct);
   intake2.spin(vex::forward, 80, pct);
-  intake3.spin(vex::forward, 80, pct);
+  intake3.spin(vex::forward, 40, pct);
   intake4.spin(vex::forward, 80, pct);
 } else if (controller1.ButtonL1.pressing()) { //low middle goal scoring
   intake.spin(vex::forward, 80, pct);
